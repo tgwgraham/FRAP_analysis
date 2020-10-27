@@ -39,6 +39,7 @@ out.inparams = inparams;
 r = bfGetReader(fname);
 
 [offx, offy] = getMyDrift_nonlin(r,bleachFrame+1,'channel',0:r.getSizeC-1);
+saveas(gcf,[outfname,'_driftCorrection.fig'])
 
 imBefore = double(bfGetPlane(r,r.getIndex(0,channelNum,0)+1));
 if bleachFrame > 1
@@ -77,7 +78,7 @@ subplot(1,3,2)
 imagesc(imFilt); axis off;
 subplot(1,3,3)
 imagesc(mask); axis off;
-
+saveas(gcf,[outfname,'_masks.fig'])
 
 nframes = r.getSizeT;
 nchan = r.getSizeC;
@@ -100,7 +101,7 @@ for j=1:nframes
     end
     
 	imshow(cat(3,imnorm(im),mask,currMask))
-    drawnow
+    drawnow    
 end
 
 fnorm = fin./(fin+fout);
@@ -115,6 +116,7 @@ for j=1:nchan
     plot(fnorm(:,j)); hold on;
 end
 legend(num2str(transpose(1:nchan)))
+saveas(gcf,[outfname,'_recoveryCurves.fig'])
 
 close(w)
 
