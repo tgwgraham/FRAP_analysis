@@ -1,4 +1,4 @@
-function out = FRAPanalyze_drift(fname,bleachFrame,filterWidth,channelNum,outfname)
+function out = FRAPanalyze_drift_circle(fname,bleachFrame,filterWidth,channelNum,outfname,radius)
 % FRAPanalyze
 % 
 % Automatically detects the region in a FRAP movie that was photobleached,
@@ -15,6 +15,7 @@ function out = FRAPanalyze_drift(fname,bleachFrame,filterWidth,channelNum,outfna
 % channelNum - index of channel to use for bleaching detection/ROI
 % definition. Numbering in BioFormats starts with 0.
 % outfname - base name of output file
+% radius - radius of circular ROI to draw around bleaching peak
 % 
 % Requires BioFormats package for MATLAB
 % (https://www.openmicroscopy.org/bio-formats/downloads/)
@@ -26,6 +27,8 @@ function out = FRAPanalyze_drift(fname,bleachFrame,filterWidth,channelNum,outfna
 % CHANGELOG:
 % 20190803 - new version FRAPanalyze_drift corrects for drift using the
 % function getMyDrift_nonlin
+% 20201117 - FRAPanalyze_drift_circle uses a circle of a specified radius
+% centered on the bleaching peak.
 
 inparams.fname = fname;
 inparams.bleachFrame = bleachFrame;
@@ -60,8 +63,16 @@ imDiff = imBefore-imAfter;
 gaussKern = gKern(size(imDiff),filterWidth);
 imFilt = fftshift(ifft2(fft2(imDiff).*fft2(gaussKern)));
 
-mask = imFilt > max(imFilt(:))/2;
-invmask = (1-mask);
+[maxval,maxr] = max(imFilt);
+[~,maxc] = max(maxval);
+maxr = maxr(maxc);
+[C,R] = meshgrid(1:size(imFilt,2),1:size(imFilt,1));
+R = R - maxr;
+C = C - maxc;
+R = R.^2;
+C = C.^2;
+mask = (R+C) < radius^2;
+
 
 out.imBefore = imBefore;
 out.imAfter = imAfter;
